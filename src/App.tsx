@@ -6,7 +6,6 @@ import './App.css';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 
 interface Account {
@@ -27,6 +26,7 @@ function App() {
     enabled: false,
     account: null,
   });
+  const [numberModal, setNumberModal] = useState('')
 
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
@@ -93,29 +93,52 @@ function App() {
     setEditMode({ enabled: false, account: null })
   }
 
-  function deposit(id: number, amount: number) {
+  function deposit(id: number, amount: string) {
+    if(!numberModal) {
+      alert("Por favor, preencha todos os campos")
+      return
+    }
+    
     const updatedAccounts = accounts.map(account => {
+      account.balance = parseFloat(account.balance)
       if (account.id === id) {
-        account.balance += amount;
+        account.balance += parseFloat(amount);
       }
       return account;
     });
     setAccounts(updatedAccounts);
+    setNumberModal('')
+    setOpen(false)
     localStorage.setItem('accounts', JSON.stringify(updatedAccounts));
+    alert(`Foi depositado com sucesso no valor de: ${amount}`)
   }
 
   function withdraw(id: number, amount: number) {
+    if(!numberModal) {
+      alert("Por favor, preencha todos os campos")
+      return
+    }
     const updatedAccounts = accounts.map(account => {
+      
       if (account.id === id) {
+
+        account.balance = parseFloat(account.balance)
+
         if (account.balance >= amount) {
-          account.balance -= amount;
+
+          account.balance -= parseFloat(amount);
+          alert(`Foi sacado com sucesso no valor de: ${amount}`)
+
         } else {
           alert("Saldo insuficiente!");
         }
       }
       return account;
     });
+
     setAccounts(updatedAccounts);
+    setNumberModal('')
+    setOpen(false)
     localStorage.setItem('accounts', JSON.stringify(updatedAccounts));
   }
 
@@ -157,23 +180,8 @@ function App() {
       </button>
 
       <hr />
-      <Button onClick={handleOpen}>Open modal</Button>
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box className="box-modal">
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Text in a modal
-          </Typography>
-          <h2>fdsfdgfdg</h2>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-          </Typography>
-        </Box>
-      </Modal>
+      
+      
       
       
 
@@ -182,8 +190,29 @@ function App() {
           <span>{account.nameBank} - {account.agency} - {account.account} - Saldo: R$ {account.balance}</span>
           <button onClick={() => handleDelete(account.id)}>Remover</button>
           <button onClick={() => handleEdit(account)}>Editar</button>
-          <button onClick={() => deposit(account.id, 100)}>Depositar R$ 100</button>
-          <button onClick={() => withdraw(account.id, 50)}>Sacar R$ 50</button>
+          <button onClick={handleOpen}>Abrir Tela de Movimentação Bancária</button>
+          <Modal
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description"
+          >
+            <Box className="box-modal">
+              <h1>Tela de Movimentação Bancária</h1>
+              <input
+                type="number"
+                value={numberModal}
+                onChange={(e) => setNumberModal(e.target.value)}
+                placeholder="Digite um valor"
+              />
+              {/* @ts-ignore */}
+              <button onClick={() => deposit(account.id, numberModal)}>Depositar</button>
+              {/* @ts-ignore */}
+              <button onClick={() => withdraw(account.id, numberModal)}>Sacar</button>
+
+              <button onClick={() => setOpen(false)}>Sair</button>
+            </Box>
+          </Modal>
         </section>
       ))}
     </div>
